@@ -10,7 +10,7 @@ class Db:
     def connectDb(self):
         self.dbConnetion = sqlite3.connect("ToDo.db")
         self.cursor = self.dbConnetion.cursor()
-        self.cursor.execute("CREATE TABLE IF NOT EXISTS tasks(id INTEGER, task TEXT)")
+        self.cursor.execute("CREATE TABLE IF NOT EXISTS tasks(id INTEGER PRIMARY KEY, task TEXT)")
 
         #adds a new task to db in tasks table, returns the taskid
     def addTask(self, taskText):
