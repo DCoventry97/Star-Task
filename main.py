@@ -38,6 +38,7 @@ def addTaskWindow():
 
 
 def main():
+
     #Creates a button for adding a new task, a new window opens  where task details are added
     addTestButtom = Button(root, text = "Add New Task", command = addTaskWindow)
     addTestButtom.grid(row = 0, column = 0, ipadx = (minWindowX / 2), columnspan = 2)
@@ -57,5 +58,6 @@ def main():
             taskList[i].taskLabel.grid(row = i + 1, column = 0, padx = 0)
             taskList[i].taskButton.grid(row = i + 1, column = 1, padx = 0)        
     root.mainloop()
+
 
 main()

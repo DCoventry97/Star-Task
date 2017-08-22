@@ -5,12 +5,18 @@ class Db:
     def __init__(self):
         self.connectDb()
         self.nextId = self.currentMaxId() + 1
+        self.catId = self.maxcatId() + 1
 
     #makes db tables in needed, and connects to the db file and its tables
     def connectDb(self):
         self.dbConnetion = sqlite3.connect("ToDo.db")
         self.cursor = self.dbConnetion.cursor()
         self.cursor.execute("CREATE TABLE IF NOT EXISTS tasks(id INTEGER PRIMARY KEY, task TEXT)")
+        self.cursor.execute("CREATE TABLE IF NOT EXISTS category(id INTEGER PRIMARY KEY, categoryText TEXT)")
+
+    def addCategory(self, categoryText):
+        self.cursor.execute("INSERT INTO category(id, categoryText) VALUES (?, ?)", (self.catId ,categoryText))
+        self.dbConnetion.commit()
 
         #adds a new task to db in tasks table, returns the taskid
     def addTask(self, taskText):
@@ -24,7 +30,7 @@ class Db:
         self.cursor.execute("DELETE FROM tasks WHERE id=?", (taskId,))
         self.dbConnetion.commit()
 
-    #counts the number of rows in the table 
+    #counts the number of rows in tasks the table 
     def rowCount(self):
         self.cursor.execute("SELECT * FROM tasks")
         count = 0
@@ -32,7 +38,25 @@ class Db:
             count += 1
         return count
     
-    #returns the largest id in the database
+    #returns the number of rows in the category table
+    def catRowCount(self):
+        self.cursor.execute("SELECT * FROM category")
+        count = 0
+        for row in self.cursor.fetchall():
+            count += 1
+        return count
+
+    #returns the largest id in the catagory table
+    def maxcatId(self):
+        self.cursor.execute("SELECT id FROM category")
+        id = self.cursor.fetchall()
+        if (self.catRowCount() == 0):
+            return 0
+        else:
+            return id[-1][0]
+
+
+    #returns the largest id in the tasks table
     def currentMaxId(self):
         self.cursor.execute("SELECT id FROM tasks")
         id = self.cursor.fetchall()
@@ -52,7 +76,7 @@ class Db:
         task = self.cursor.fetchall()
         return task[0][0]
 
-    #checks if the db is empty    
+    #checks if the tasks table is empty    
     def checkIfEmpty(self):
         return (self.rowCount() == 0)
     
@@ -76,4 +100,5 @@ class Db:
         self.cursor.execute("SELECT task FROM tasks WHERE task=?", (taskText,))
         task = self.cursor.fetchall()
         return (taskText == task[0][0])
-           
+
+
