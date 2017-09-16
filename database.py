@@ -6,21 +6,31 @@ class Db:
         self.connectDb()
         self.nextId = self.currentMaxId() + 1
         self.catId = self.maxcatId() + 1
+        self.addNoneCategory()
 
-    #makes db tables in needed, and connects to the db file and its tables
+    #makes db tables in needed, and connects to the db file and its tables for tasks and categories
     def connectDb(self):
         self.dbConnetion = sqlite3.connect("ToDo.db")
+        self.dbConnetion.execute("PRAGMA foreign_keys = 1")
         self.cursor = self.dbConnetion.cursor()
-        self.cursor.execute("CREATE TABLE IF NOT EXISTS tasks(id INTEGER PRIMARY KEY, task TEXT)")
         self.cursor.execute("CREATE TABLE IF NOT EXISTS category(id INTEGER PRIMARY KEY, categoryText TEXT)")
+        self.cursor.execute("CREATE TABLE IF NOT EXISTS tasks(id INTEGER PRIMARY KEY, task TEXT, category TEXT)")
+        
+    
+    #adds none to the category table so that user can add a task with no category connected to it
+    def addNoneCategory(self):
+        if not (self.categoryExists("None")):
+            self.addCategory("None")
 
+    # adds a new category to the category table
     def addCategory(self, categoryText):
-        self.cursor.execute("INSERT INTO category(id, categoryText) VALUES (?, ?)", (self.catId ,categoryText))
+        self.cursor.execute("INSERT INTO category(id, categoryText) VALUES (?, ?)", (self.catId, categoryText))
+        self.catId += 1
         self.dbConnetion.commit()
 
         #adds a new task to db in tasks table, returns the taskid
-    def addTask(self, taskText):
-        self.cursor.execute("INSERT INTO tasks(id, task) VALUES (?, ?)", (self.nextId, taskText))
+    def addTask(self, taskText, taskCat = None):
+        self.cursor.execute("INSERT INTO tasks(id, task, category) VALUES (?, ?, ?)", (self.nextId, taskText, taskCat))
         self.dbConnetion.commit()
         self.nextId += 1
         return self.nextId - 1
@@ -28,6 +38,11 @@ class Db:
     #removes a task from tasks table using the taskid
     def removeTask(self, taskId):
         self.cursor.execute("DELETE FROM tasks WHERE id=?", (taskId,))
+        self.dbConnetion.commit()
+
+    #removes category from db using category text 
+    def removeCategory(self, catText):
+        self.cursor.executemany("DELETE FROM category WHERE categoryText=?", (catText,))
         self.dbConnetion.commit()
 
     #counts the number of rows in tasks the table 
@@ -45,6 +60,11 @@ class Db:
         for row in self.cursor.fetchall():
             count += 1
         return count
+    
+    #returns all categories in category table
+    def getAllCategories(self):
+        self.cursor.execute("SELECT categoryText FROM category")
+        return self.cursor.fetchall()
 
     #returns the largest id in the catagory table
     def maxcatId(self):
@@ -100,5 +120,13 @@ class Db:
         self.cursor.execute("SELECT task FROM tasks WHERE task=?", (taskText,))
         task = self.cursor.fetchall()
         return (taskText == task[0][0])
+    
+    #returns boolean if category exists in category table
+    def categoryExists(self, category):
+        self.cursor.execute("SELECT categoryText FROM category WHERE categoryText=?", (category,))
+        return (self.cursor.fetchall() != []) 
 
-
+    #get the category associated with a task       
+    def getTaskCat(self, id):
+        self.cursor.execute("SELECT category FROM tasks WHERE id=?",(id,))
+        return self.cursor.fetchall()[0][0]
