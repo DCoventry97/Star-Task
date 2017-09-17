@@ -69,8 +69,6 @@ def removeCategoryWindow():
         catLable.grid(row = i, column = 0)
         catButton = Button(removeCatWindow, text = "Delete", command = lambda position = i: destroyCategory(categories[position], removeCatWindow))
         catButton.grid(row = i, column = 1)
-    #print(categories[0])
-
 
 
 
